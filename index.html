@@ -137,16 +137,16 @@
       const wrapper = document.createElement('div');
       wrapper.className = 'msg-wrapper';
 
-      const msg = document.createElement('div');
-      msg.className = `msg ${classe}`;
-      msg.textContent = texto;
-
       if (isBot) {
         const avatar = document.createElement('div');
         avatar.className = 'bot-avatar';
-        avatar.textContent = 'G'; // Letra do avatar da GIA
+        avatar.textContent = 'G';
         wrapper.appendChild(avatar);
       }
+
+      const msg = document.createElement('div');
+      msg.className = `msg ${classe}`;
+      msg.textContent = texto;
 
       wrapper.appendChild(msg);
       chatContainer.appendChild(wrapper);
@@ -161,8 +161,22 @@
       adicionarMensagem(pergunta, 'user-msg');
       input.value = '';
 
-      adicionarMensagem('...', 'bot-msg', true); // loading
-      const respostaBot = document.querySelector('.msg.bot-msg:last-of-type');
+      // Cria a bolha da GIA com "..."
+      const placeholder = document.createElement('div');
+      placeholder.className = 'msg-wrapper';
+
+      const avatar = document.createElement('div');
+      avatar.className = 'bot-avatar';
+      avatar.textContent = 'G';
+
+      const bolha = document.createElement('div');
+      bolha.className = 'msg bot-msg';
+      bolha.textContent = '...';
+
+      placeholder.appendChild(avatar);
+      placeholder.appendChild(bolha);
+      chatContainer.appendChild(placeholder);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
 
       try {
         const response = await fetch("https://gia3.onrender.com/ask", {
@@ -170,21 +184,16 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ question: pergunta })
         });
-      
+
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      
+
         const data = await response.json();
-      
-        if (data && data.answer) {
-          respostaBot.textContent = data.answer;
-          exibirSugestoes(data.suggestions || []);
-        } else {
-          respostaBot.textContent = "Desculpe, não consegui entender a resposta da API.";
-        }
-      
+
+        bolha.textContent = data.answer || "Não entendi sua pergunta.";
+        exibirSugestoes(data.suggestions || []);
       } catch (error) {
-        console.error("Erro na requisição:", error);
-        respostaBot.textContent = "Ocorreu um erro ao processar sua pergunta. Tente novamente.";
+        console.error("Erro:", error);
+        bolha.textContent = "Erro ao obter resposta da GIA.";
       }
     }
 
