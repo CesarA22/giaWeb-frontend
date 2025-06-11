@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>GIA - Assistente de Ferramentaria</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; background: #f8f8f8; }
+    textarea { width: 100%; height: 80px; margin-bottom: 10px; }
+    button { padding: 10px 20px; cursor: pointer; }
+    #resposta { white-space: pre-line; background: #fff; padding: 15px; border: 1px solid #ccc; margin-top: 20px; }
+    .sugestoes button { margin: 5px; }
+  </style>
+</head>
+<body>
+
+  <h1>Assistente Virtual GIA</h1>
+  <p>Digite sua pergunta abaixo:</p>
+
+  <textarea id="pergunta" placeholder="Ex: Quais brocas para aço inoxidável?"></textarea>
+  <button onclick="enviarPergunta()">Enviar</button>
+
+  <div id="resposta"></div>
+  <div class="sugestoes" id="sugestoes-container"></div>
+
+  <script>
+    async function enviarPergunta(perguntaManual = null) {
+      const pergunta = perguntaManual || document.getElementById('pergunta').value;
+
+      const response = await fetch("https://gia3.onrender.com/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: pergunta })
+      });
+
+      const data = await response.json();
+      document.getElementById("resposta").innerHTML = data.answer;
+      exibirSugestoes(data.suggestions);
+    }
+
+    function exibirSugestoes(sugestoes) {
+      const container = document.getElementById("sugestoes-container");
+      container.innerHTML = "";
+      sugestoes.forEach(texto => {
+        const botao = document.createElement("button");
+        botao.textContent = texto;
+        botao.onclick = () => enviarPergunta(texto);
+        container.appendChild(botao);
+      });
+    }
+  </script>
+
+</body>
+</html>
