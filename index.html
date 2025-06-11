@@ -2,11 +2,28 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GIA - Assistente Virtual</title>
   <style>
     * {
       box-sizing: border-box;
+      scrollbar-width: thin;
+      scrollbar-color: #ccc transparent;
     }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background-color: #bbb;
+      border-radius: 3px;
+    }
+
     body {
       margin: 0;
       background-color: #f3f4f6;
@@ -16,6 +33,7 @@
       align-items: center;
       height: 100vh;
     }
+
     header {
       background-color: #005580;
       color: white;
@@ -25,6 +43,7 @@
       font-weight: bold;
       width: 100%;
     }
+
     #chat-container {
       flex: 1;
       overflow-y: auto;
@@ -34,18 +53,21 @@
       display: flex;
       flex-direction: column;
     }
+
     .msg-wrapper {
       display: flex;
       margin-bottom: 12px;
       align-items: flex-start;
     }
+
     .msg {
       padding: 12px 16px;
       border-radius: 16px;
-      white-space: pre-line;
       line-height: 1.4;
       max-width: 75%;
+      word-wrap: break-word;
     }
+
     .user-msg {
       align-self: flex-end;
       background-color: #cce5ff;
@@ -53,6 +75,7 @@
       border-top-right-radius: 0;
       margin-left: auto;
     }
+
     .bot-msg {
       background-color: #ffffff;
       border: 1px solid #ccc;
@@ -60,6 +83,12 @@
       border-top-left-radius: 0;
       margin-right: auto;
     }
+
+    .bot-msg a {
+      color: #005580;
+      text-decoration: underline;
+    }
+
     .bot-avatar {
       width: 36px;
       height: 36px;
@@ -74,6 +103,7 @@
       margin-right: 10px;
       flex-shrink: 0;
     }
+
     #formulario {
       display: flex;
       padding: 0.75rem;
@@ -82,6 +112,7 @@
       width: 100%;
       max-width: 600px;
     }
+
     #pergunta {
       flex: 1;
       padding: 10px 14px;
@@ -90,6 +121,7 @@
       border-radius: 999px;
       margin-right: 10px;
     }
+
     button {
       padding: 10px 16px;
       font-size: 1rem;
@@ -99,6 +131,7 @@
       border-radius: 999px;
       cursor: pointer;
     }
+
     #sugestoes-container {
       display: flex;
       flex-wrap: wrap;
@@ -106,6 +139,7 @@
       margin-top: 10px;
       justify-content: center;
     }
+
     #sugestoes-container button {
       background-color: #e0f0ff;
       color: #004466;
@@ -114,8 +148,21 @@
       border-radius: 16px;
       cursor: pointer;
     }
+
     #sugestoes-container button:hover {
       background-color: #cce6ff;
+    }
+
+    @media (max-width: 600px) {
+      #chat-container, #formulario {
+        padding: 0.5rem;
+      }
+      .msg {
+        max-width: 90%;
+      }
+      #pergunta {
+        font-size: 0.95rem;
+      }
     }
   </style>
 </head>
@@ -133,6 +180,13 @@
   <script>
     const chatContainer = document.getElementById('chat-container');
 
+    function renderMarkdown(texto) {
+      return texto
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>')
+        .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+    }
+
     function adicionarMensagem(texto, classe, isBot = false) {
       const wrapper = document.createElement('div');
       wrapper.className = 'msg-wrapper';
@@ -146,7 +200,7 @@
 
       const msg = document.createElement('div');
       msg.className = `msg ${classe}`;
-      msg.textContent = texto;
+      msg.innerHTML = isBot ? renderMarkdown(texto) : texto;
 
       wrapper.appendChild(msg);
       chatContainer.appendChild(wrapper);
@@ -161,9 +215,9 @@
       adicionarMensagem(pergunta, 'user-msg');
       input.value = '';
 
-      // Cria a bolha da GIA com "..."
-      const placeholder = document.createElement('div');
-      placeholder.className = 'msg-wrapper';
+      // Placeholder enquanto carrega
+      const wrapper = document.createElement('div');
+      wrapper.className = 'msg-wrapper';
 
       const avatar = document.createElement('div');
       avatar.className = 'bot-avatar';
@@ -173,9 +227,9 @@
       bolha.className = 'msg bot-msg';
       bolha.textContent = '...';
 
-      placeholder.appendChild(avatar);
-      placeholder.appendChild(bolha);
-      chatContainer.appendChild(placeholder);
+      wrapper.appendChild(avatar);
+      wrapper.appendChild(bolha);
+      chatContainer.appendChild(wrapper);
       chatContainer.scrollTop = chatContainer.scrollHeight;
 
       try {
@@ -189,7 +243,7 @@
 
         const data = await response.json();
 
-        bolha.textContent = data.answer || "Não entendi sua pergunta.";
+        bolha.innerHTML = renderMarkdown(data.answer || "Não entendi sua pergunta.");
         exibirSugestoes(data.suggestions || []);
       } catch (error) {
         console.error("Erro:", error);
