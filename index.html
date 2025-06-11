@@ -87,14 +87,18 @@
     }
     .copy-btn {
       position: absolute;
-      top: 6px;
+      bottom: 6px;
       right: 10px;
       background: none;
       border: none;
-      color: #999;
-      cursor: pointer;
+      color: #888;
       font-size: 0.9rem;
-      display: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+    
+    .bot-msg-wrapper {
+      position: relative;
     }
     
     .msg-wrapper:hover .copy-btn {
@@ -219,26 +223,26 @@
   function adicionarMensagem(texto, classe, isBot = false) {
     const wrapper = document.createElement('div');
     wrapper.className = 'msg-wrapper';
-
+  
     if (isBot) {
       wrapper.classList.add('bot-msg-wrapper');
-
+  
       const avatar = document.createElement('div');
       avatar.className = 'bot-avatar';
       avatar.textContent = 'G';
       wrapper.appendChild(avatar);
     }
-
+  
     const msg = document.createElement('div');
     msg.className = `msg ${classe}`;
     msg.innerHTML = isBot ? formatarResposta(texto) : texto;
-
+  
     if (isBot) {
       const copyBtn = document.createElement('button');
       copyBtn.className = 'copy-btn';
       copyBtn.textContent = '📋';
       copyBtn.title = 'Copiar resposta';
-
+  
       copyBtn.onclick = () => {
         const plainText = msg.innerText;
         navigator.clipboard.writeText(plainText).then(() => {
@@ -246,14 +250,15 @@
           setTimeout(() => (copyBtn.textContent = '📋'), 2000);
         });
       };
-
+  
       wrapper.appendChild(copyBtn);
     }
-
+  
     wrapper.appendChild(msg);
     chatContainer.appendChild(wrapper);
     chatContainer.scrollTop = chatContainer.scrollHeight;
   }
+
 
   async function enviarPergunta(perguntaManual = null) {
     const input = document.getElementById('pergunta');
