@@ -30,7 +30,6 @@
       font-family: 'Segoe UI', sans-serif;
       display: flex;
       flex-direction: column;
-      align-items: center;
       height: 100vh;
     }
 
@@ -48,8 +47,10 @@
       flex: 1;
       overflow-y: auto;
       padding: 1rem;
+      padding-bottom: 90px; /* espaço para a barra fixa */
       width: 100%;
       max-width: 600px;
+      margin: 0 auto;
       display: flex;
       flex-direction: column;
     }
@@ -66,6 +67,7 @@
       line-height: 1.4;
       max-width: 75%;
       word-wrap: break-word;
+      background-color: #fff;
     }
 
     .user-msg {
@@ -82,11 +84,6 @@
       color: #000;
       border-top-left-radius: 0;
       margin-right: auto;
-    }
-
-    .bot-msg a {
-      color: #005580;
-      text-decoration: underline;
     }
 
     .bot-avatar {
@@ -107,10 +104,14 @@
     #formulario {
       display: flex;
       padding: 0.75rem;
-      border-top: 1px solid #ddd;
       background-color: white;
       width: 100%;
       max-width: 600px;
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      border-top: 1px solid #ddd;
     }
 
     #pergunta {
@@ -180,11 +181,20 @@
   <script>
     const chatContainer = document.getElementById('chat-container');
 
-    function renderMarkdown(texto) {
-      return texto
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\n/g, '<br>')
-        .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+    function formatarResposta(texto) {
+      const linhas = texto.split('\n');
+      return linhas.map(linha => {
+        if (linha.startsWith('**') && linha.endsWith('**')) {
+          return '<strong>' + linha.replace(/\*\*/g, '') + '</strong>';
+        } else if (linha.startsWith('Link: http')) {
+          const url = linha.replace('Link: ', '').trim();
+          return `<a href="${url}" target="_blank">🔗 Acessar produto no Webshop</a>`;
+        } else if (linha.startsWith('•')) {
+          return `<div style="margin-left: 1rem">• ${linha.substring(1).trim()}</div>`;
+        } else {
+          return linha;
+        }
+      }).join('<br>');
     }
 
     function adicionarMensagem(texto, classe, isBot = false) {
@@ -200,7 +210,7 @@
 
       const msg = document.createElement('div');
       msg.className = `msg ${classe}`;
-      msg.innerHTML = isBot ? renderMarkdown(texto) : texto;
+      msg.innerHTML = isBot ? formatarResposta(texto) : texto;
 
       wrapper.appendChild(msg);
       chatContainer.appendChild(wrapper);
@@ -243,7 +253,7 @@
 
         const data = await response.json();
 
-        bolha.innerHTML = renderMarkdown(data.answer || "Não entendi sua pergunta.");
+        bolha.innerHTML = formatarResposta(data.answer || "Não entendi sua pergunta.");
         exibirSugestoes(data.suggestions || []);
       } catch (error) {
         console.error("Erro:", error);
