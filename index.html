@@ -170,12 +170,21 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ question: pergunta })
         });
-
+      
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      
         const data = await response.json();
-        respostaBot.textContent = data.answer;
-        exibirSugestoes(data.suggestions);
+      
+        if (data && data.answer) {
+          respostaBot.textContent = data.answer;
+          exibirSugestoes(data.suggestions || []);
+        } else {
+          respostaBot.textContent = "Desculpe, não consegui entender a resposta da API.";
+        }
+      
       } catch (error) {
-        respostaBot.textContent = "Erro ao se conectar com o servidor.";
+        console.error("Erro na requisição:", error);
+        respostaBot.textContent = "Ocorreu um erro ao processar sua pergunta. Tente novamente.";
       }
     }
 
