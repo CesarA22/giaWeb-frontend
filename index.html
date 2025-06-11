@@ -85,6 +85,25 @@
       border-top-left-radius: 0;
       margin-right: auto;
     }
+    .copy-btn {
+      position: absolute;
+      top: 6px;
+      right: 10px;
+      background: none;
+      border: none;
+      color: #999;
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: none;
+    }
+    
+    .msg-wrapper:hover .copy-btn {
+      display: inline;
+    }
+    
+    .msg.bot-msg-wrapper {
+      position: relative;
+    }
 
     .bot-avatar {
       width: 36px;
@@ -179,105 +198,140 @@
   </form>
 
   <script>
-    const chatContainer = document.getElementById('chat-container');
+  const chatContainer = document.getElementById('chat-container');
 
-    function formatarResposta(texto) {
-      const linhas = texto.split('\n');
-      return linhas.map(linha => {
-        if (linha.startsWith('**') && linha.endsWith('**')) {
-          return '<strong>' + linha.replace(/\*\*/g, '') + '</strong>';
-        } else if (linha.startsWith('Link: http')) {
-          const url = linha.replace('Link: ', '').trim();
-          return `<a href="${url}" target="_blank">🔗 Acessar produto no Webshop</a>`;
-        } else if (linha.startsWith('•')) {
-          return `<div style="margin-left: 1rem">• ${linha.substring(1).trim()}</div>`;
-        } else {
-          return linha;
-        }
-      }).join('<br>');
-    }
-
-    function adicionarMensagem(texto, classe, isBot = false) {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'msg-wrapper';
-
-      if (isBot) {
-        const avatar = document.createElement('div');
-        avatar.className = 'bot-avatar';
-        avatar.textContent = 'G';
-        wrapper.appendChild(avatar);
+  function formatarResposta(texto) {
+    const linhas = texto.split('\n');
+    return linhas.map(linha => {
+      if (linha.startsWith('**') && linha.endsWith('**')) {
+        return '<strong>' + linha.replace(/\*\*/g, '') + '</strong>';
+      } else if (linha.startsWith('Link: http')) {
+        const url = linha.replace('Link: ', '').trim();
+        return `<a href="${url}" target="_blank">🔗 Acessar produto no Webshop</a>`;
+      } else if (linha.startsWith('•')) {
+        return `<div style="margin-left: 1rem">• ${linha.substring(1).trim()}</div>`;
+      } else {
+        return linha;
       }
+    }).join('<br>');
+  }
 
-      const msg = document.createElement('div');
-      msg.className = `msg ${classe}`;
-      msg.innerHTML = isBot ? formatarResposta(texto) : texto;
+  function adicionarMensagem(texto, classe, isBot = false) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'msg-wrapper';
 
-      wrapper.appendChild(msg);
-      chatContainer.appendChild(wrapper);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    async function enviarPergunta(perguntaManual = null) {
-      const input = document.getElementById('pergunta');
-      const pergunta = perguntaManual || input.value.trim();
-      if (!pergunta) return;
-
-      adicionarMensagem(pergunta, 'user-msg');
-      input.value = '';
-
-      // Placeholder enquanto carrega
-      const wrapper = document.createElement('div');
-      wrapper.className = 'msg-wrapper';
+    if (isBot) {
+      wrapper.classList.add('bot-msg-wrapper');
 
       const avatar = document.createElement('div');
       avatar.className = 'bot-avatar';
       avatar.textContent = 'G';
-
-      const bolha = document.createElement('div');
-      bolha.className = 'msg bot-msg';
-      bolha.textContent = '...';
-
       wrapper.appendChild(avatar);
-      wrapper.appendChild(bolha);
-      chatContainer.appendChild(wrapper);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
 
-      try {
-        const response = await fetch("https://gia3.onrender.com/ask", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question: pergunta })
+    const msg = document.createElement('div');
+    msg.className = `msg ${classe}`;
+    msg.innerHTML = isBot ? formatarResposta(texto) : texto;
+
+    if (isBot) {
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'copy-btn';
+      copyBtn.textContent = '📋';
+      copyBtn.title = 'Copiar resposta';
+
+      copyBtn.onclick = () => {
+        const plainText = msg.innerText;
+        navigator.clipboard.writeText(plainText).then(() => {
+          copyBtn.textContent = '✅ Copiado!';
+          setTimeout(() => (copyBtn.textContent = '📋'), 2000);
         });
+      };
 
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const data = await response.json();
-
-        bolha.innerHTML = formatarResposta(data.answer || "Não entendi sua pergunta.");
-        exibirSugestoes(data.suggestions || []);
-      } catch (error) {
-        console.error("Erro:", error);
-        bolha.textContent = "Erro ao obter resposta da GIA.";
-      }
+      wrapper.appendChild(copyBtn);
     }
 
-    function exibirSugestoes(sugestoes) {
-      let container = document.getElementById('sugestoes-container');
-      if (!container) {
-        container = document.createElement('div');
-        container.id = 'sugestoes-container';
-        chatContainer.appendChild(container);
-      }
-      container.innerHTML = '';
-      sugestoes.forEach(s => {
-        const botao = document.createElement('button');
-        botao.textContent = s;
-        botao.onclick = () => enviarPergunta(s);
-        container.appendChild(botao);
+    wrapper.appendChild(msg);
+    chatContainer.appendChild(wrapper);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  async function enviarPergunta(perguntaManual = null) {
+    const input = document.getElementById('pergunta');
+    const pergunta = perguntaManual || input.value.trim();
+    if (!pergunta) return;
+
+    adicionarMensagem(pergunta, 'user-msg');
+    input.value = '';
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'msg-wrapper bot-msg-wrapper';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'bot-avatar';
+    avatar.textContent = 'G';
+
+    const bolha = document.createElement('div');
+    bolha.className = 'msg bot-msg';
+    bolha.textContent = '...';
+
+    wrapper.appendChild(avatar);
+    wrapper.appendChild(bolha);
+    chatContainer.appendChild(wrapper);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+
+    try {
+      const response = await fetch("https://gia3.onrender.com/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: pergunta })
       });
-      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const data = await response.json();
+
+      bolha.innerHTML = formatarResposta(data.answer || "Não entendi sua pergunta.");
+
+      // Cria botão copiar agora que o conteúdo está pronto
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'copy-btn';
+      copyBtn.textContent = '📋';
+      copyBtn.title = 'Copiar resposta';
+
+      copyBtn.onclick = () => {
+        const plainText = bolha.innerText;
+        navigator.clipboard.writeText(plainText).then(() => {
+          copyBtn.textContent = '✅ Copiado!';
+          setTimeout(() => (copyBtn.textContent = '📋'), 2000);
+        });
+      };
+
+      wrapper.appendChild(copyBtn);
+      exibirSugestoes(data.suggestions || []);
+
+    } catch (error) {
+      console.error("Erro:", error);
+      bolha.textContent = "Erro ao obter resposta da GIA.";
     }
-  </script>
+  }
+
+  function exibirSugestoes(sugestoes) {
+    let container = document.getElementById('sugestoes-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'sugestoes-container';
+      chatContainer.appendChild(container);
+    }
+    container.innerHTML = '';
+    sugestoes.forEach(s => {
+      const botao = document.createElement('button');
+      botao.textContent = s;
+      botao.onclick = () => enviarPergunta(s);
+      container.appendChild(botao);
+    });
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+</script>
 
 </body>
 </html>
