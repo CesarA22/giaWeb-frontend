@@ -156,27 +156,6 @@
       cursor: pointer;
     }
 
-    #sugestoes-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-      justify-content: center;
-    }
-
-    #sugestoes-container button {
-      background-color: #e0f0ff;
-      color: #004466;
-      padding: 8px 14px;
-      border: none;
-      border-radius: 16px;
-      cursor: pointer;
-    }
-
-    #sugestoes-container button:hover {
-      background-color: #cce6ff;
-    }
-
     @media (max-width: 600px) {
       #chat-container, #formulario {
         padding: 0.5rem;
@@ -312,29 +291,11 @@
       };
 
       wrapper.appendChild(copyBtn);
-      exibirSugestoes(data.suggestions || []);
 
     } catch (error) {
       console.error("Erro:", error);
       bolha.textContent = "Erro ao obter resposta da GIA.";
     }
-  }
-
-  function exibirSugestoes(sugestoes) {
-    let container = document.getElementById('sugestoes-container');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'sugestoes-container';
-      chatContainer.appendChild(container);
-    }
-    container.innerHTML = '';
-    sugestoes.forEach(s => {
-      const botao = document.createElement('button');
-      botao.textContent = s;
-      botao.onclick = () => enviarPergunta(s);
-      container.appendChild(botao);
-    });
-    chatContainer.scrollTop = chatContainer.scrollHeight;
   }
 </script>
 
