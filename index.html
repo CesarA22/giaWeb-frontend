@@ -43,11 +43,46 @@
       width: 100%;
     }
 
+    .mode-switcher {
+      display: flex;
+      justify-content: center;
+      padding: 1rem;
+      gap: 1rem;
+    }
+
+    .mode-btn {
+      padding: 8px 20px;
+      border: 2px solid #005580;
+      background: white;
+      color: #005580;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+
+    .mode-btn.active {
+      background: #005580;
+      color: white;
+    }
+
+    .mode-btn:hover {
+      background: #004060;
+      color: white;
+    }
+
+    /* Chat Mode */
+    #chat-mode {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 120px);
+    }
+
     #chat-container {
       flex: 1;
       overflow-y: auto;
       padding: 1rem;
-      padding-bottom: 90px; /* espaço para a barra fixa */
+      padding-bottom: 90px;
       width: 100%;
       max-width: 600px;
       margin: 0 auto;
@@ -84,29 +119,6 @@
       color: #000;
       border-top-left-radius: 0;
       margin-right: auto;
-    }
-    .copy-btn {
-      position: absolute;
-      bottom: 6px;
-      right: 10px;
-      background: none;
-      border: none;
-      color: #888;
-      font-size: 0.9rem;
-      cursor: pointer;
-      padding: 4px;
-    }
-    
-    .bot-msg-wrapper {
-      position: relative;
-    }
-    
-    .msg-wrapper:hover .copy-btn {
-      display: inline;
-    }
-    
-    .msg.bot-msg-wrapper {
-      position: relative;
     }
 
     .bot-avatar {
@@ -156,15 +168,139 @@
       cursor: pointer;
     }
 
+    /* Search Mode */
+    #search-mode {
+      display: none;
+      padding: 1rem;
+      max-width: 800px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .search-form {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-size: 0.9rem;
+      color: #333;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group select {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #005580;
+    }
+
+    .dimension-group {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
+
+    .dimension-group h3 {
+      margin: 0 0 1rem 0;
+      color: #005580;
+      font-size: 1.1rem;
+    }
+
+    .search-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      justify-content: center;
+    }
+
+    .search-btn {
+      padding: 12px 32px;
+      background: #005580;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: background 0.3s;
+    }
+
+    .search-btn:hover {
+      background: #004060;
+    }
+
+    .clear-btn {
+      padding: 12px 32px;
+      background: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: background 0.3s;
+    }
+
+    .clear-btn:hover {
+      background: #5a6268;
+    }
+
+    .results-section {
+      margin-top: 2rem;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: none;
+    }
+
+    .result-item {
+      border: 1px solid #e0e0e0;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+    }
+
+    .result-item h4 {
+      margin: 0 0 0.5rem 0;
+      color: #005580;
+    }
+
     @media (max-width: 600px) {
-      #chat-container, #formulario {
-        padding: 0.5rem;
+      .form-grid {
+        grid-template-columns: 1fr;
       }
-      .msg {
-        max-width: 90%;
+      
+      .search-buttons {
+        flex-direction: column;
       }
-      #pergunta {
-        font-size: 0.95rem;
+      
+      .search-btn, .clear-btn {
+        width: 100%;
       }
     }
   </style>
@@ -173,15 +309,167 @@
 
   <header>GIA - Assistente Virtual de Ferramentaria</header>
 
-  <div id="chat-container"></div>
+  <div class="mode-switcher">
+    <button class="mode-btn active" onclick="switchMode('chat')">💬 Chat</button>
+    <button class="mode-btn" onclick="switchMode('search')">🔍 Busca Avançada</button>
+  </div>
 
-  <form id="formulario" onsubmit="enviarPergunta(); return false;">
-    <input type="text" id="pergunta" placeholder="Digite sua pergunta..." autocomplete="off" />
-    <button type="submit">➤</button>
-  </form>
+  <!-- Chat Mode -->
+  <div id="chat-mode">
+    <div id="chat-container"></div>
+    <form id="formulario" onsubmit="enviarPergunta(); return false;">
+      <input type="text" id="pergunta" placeholder="Digite sua pergunta..." autocomplete="off" />
+      <button type="submit">➤</button>
+    </form>
+  </div>
+
+  <!-- Search Mode -->
+  <div id="search-mode">
+    <div class="search-form">
+      <h2 style="margin-top: 0; color: #005580;">Busca Estruturada de Ferramentas</h2>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="tipo_ferramenta">Tipo de Ferramenta</label>
+          <select id="tipo_ferramenta">
+            <option value="">Selecione...</option>
+            <option value="Broca">Broca</option>
+            <option value="Fresa">Fresa</option>
+            <option value="Macho Máquina">Macho Máquina</option>
+            <option value="Macho Laminador">Macho Laminador</option>
+            <option value="Alargador">Alargador</option>
+            <option value="Chanfrador">Chanfrador</option>
+            <option value="Escareador / Rebarbador">Escareador</option>
+            <option value="Bedame Grooving">Bedame</option>
+            <option value="Inserto / Pastilha">Inserto/Pastilha</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="catalogo">Linha do Catálogo</label>
+          <select id="catalogo">
+            <option value="">Todas</option>
+            <option value="Eco-Line">Eco-Line</option>
+            <option value="Smart-Line">Smart-Line</option>
+            <option value="Advanced-Line">Advanced-Line</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="material_usinado">Material a Usinar</label>
+          <select id="material_usinado">
+            <option value="">Selecione...</option>
+            <option value="aco">Aço</option>
+            <option value="inox">Aço Inoxidável</option>
+            <option value="ferro_fundido">Ferro Fundido</option>
+            <option value="aluminio">Alumínio</option>
+            <option value="cobre">Cobre</option>
+            <option value="metais_nao_ferrosos">Metais Não Ferrosos</option>
+            <option value="superligas">Superligas</option>
+            <option value="materiais_endurecidos">Materiais Endurecidos</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="material_ferramenta">Material da Ferramenta</label>
+          <select id="material_ferramenta">
+            <option value="">Selecione...</option>
+            <option value="HSS">HSS (Aço Rápido)</option>
+            <option value="METAL DURO">Metal Duro</option>
+            <option value="METAL DURO INTERIÇO">Metal Duro Interiço</option>
+            <option value="CERÂMICA">Cerâmica</option>
+            <option value="DIAMANTE">Diamante</option>
+            <option value="PCBN">PCBN</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="refrigeracao">Refrigeração Interna</label>
+          <select id="refrigeracao">
+            <option value="">Indiferente</option>
+            <option value="Sim">Com Refrigeração</option>
+            <option value="Não">Sem Refrigeração</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="codigo_artigo">Código do Artigo</label>
+          <input type="text" id="codigo_artigo" placeholder="Ex: 211">
+        </div>
+      </div>
+
+      <div class="dimension-group">
+        <h3>Dimensões (mm)</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="diametro">Diâmetro</label>
+            <input type="number" id="diametro" step="0.01" placeholder="Ex: 20">
+          </div>
+          
+          <div class="form-group">
+            <label for="comprimento_total">Comprimento Total</label>
+            <input type="number" id="comprimento_total" step="0.01" placeholder="Ex: 100">
+          </div>
+          
+          <div class="form-group">
+            <label for="comprimento_corte">Comprimento de Corte</label>
+            <input type="number" id="comprimento_corte" step="0.01" placeholder="Ex: 30">
+          </div>
+          
+          <div class="form-group">
+            <label for="comprimento_haste">Comprimento da Haste</label>
+            <input type="number" id="comprimento_haste" step="0.01" placeholder="Ex: 10">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-grid" style="margin-top: 1rem;">
+        <div class="form-group">
+          <label for="tipo_furo">Tipo de Furo</label>
+          <select id="tipo_furo">
+            <option value="">Selecione...</option>
+            <option value="Passante">Passante</option>
+            <option value="Cego">Cego</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="norma_din">Norma DIN</label>
+          <input type="text" id="norma_din" placeholder="Ex: DIN 339">
+        </div>
+      </div>
+
+      <div class="search-buttons">
+        <button type="button" class="search-btn" onclick="buscarFerramentas()">🔍 Buscar</button>
+        <button type="button" class="clear-btn" onclick="limparFormulario()">🗑️ Limpar</button>
+      </div>
+    </div>
+
+    <div id="results-section" class="results-section"></div>
+  </div>
 
   <script>
   const chatContainer = document.getElementById('chat-container');
+  let currentMode = 'chat';
+
+  function switchMode(mode) {
+    currentMode = mode;
+    const chatMode = document.getElementById('chat-mode');
+    const searchMode = document.getElementById('search-mode');
+    const modeBtns = document.querySelectorAll('.mode-btn');
+    
+    modeBtns.forEach(btn => btn.classList.remove('active'));
+    
+    if (mode === 'chat') {
+      chatMode.style.display = 'flex';
+      searchMode.style.display = 'none';
+      modeBtns[0].classList.add('active');
+    } else {
+      chatMode.style.display = 'none';
+      searchMode.style.display = 'block';
+      modeBtns[1].classList.add('active');
+    }
+  }
 
   function formatarResposta(texto) {
     const linhas = texto.split('\n');
@@ -202,42 +490,22 @@
   function adicionarMensagem(texto, classe, isBot = false) {
     const wrapper = document.createElement('div');
     wrapper.className = 'msg-wrapper';
-  
+
     if (isBot) {
-      wrapper.classList.add('bot-msg-wrapper');
-  
       const avatar = document.createElement('div');
       avatar.className = 'bot-avatar';
       avatar.textContent = 'G';
       wrapper.appendChild(avatar);
     }
-  
+
     const msg = document.createElement('div');
     msg.className = `msg ${classe}`;
     msg.innerHTML = isBot ? formatarResposta(texto) : texto;
-  
-    if (isBot) {
-      const copyBtn = document.createElement('button');
-      copyBtn.className = 'copy-btn';
-      copyBtn.textContent = '📋';
-      copyBtn.title = 'Copiar resposta';
-  
-      copyBtn.onclick = () => {
-        const plainText = msg.innerText;
-        navigator.clipboard.writeText(plainText).then(() => {
-          copyBtn.textContent = '✅ Copiado!';
-          setTimeout(() => (copyBtn.textContent = '📋'), 2000);
-        });
-      };
-  
-      wrapper.appendChild(copyBtn);
-    }
-  
     wrapper.appendChild(msg);
+    
     chatContainer.appendChild(wrapper);
     chatContainer.scrollTop = chatContainer.scrollHeight;
   }
-
 
   async function enviarPergunta(perguntaManual = null) {
     const input = document.getElementById('pergunta');
@@ -248,7 +516,7 @@
     input.value = '';
 
     const wrapper = document.createElement('div');
-    wrapper.className = 'msg-wrapper bot-msg-wrapper';
+    wrapper.className = 'msg-wrapper';
 
     const avatar = document.createElement('div');
     avatar.className = 'bot-avatar';
@@ -273,31 +541,101 @@
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data = await response.json();
-
       bolha.innerHTML = formatarResposta(data.answer || "Não entendi sua pergunta.");
-
-      // Cria botão copiar agora que o conteúdo está pronto
-      const copyBtn = document.createElement('button');
-      copyBtn.className = 'copy-btn';
-      copyBtn.textContent = '📋';
-      copyBtn.title = 'Copiar resposta';
-
-      copyBtn.onclick = () => {
-        const plainText = bolha.innerText;
-        navigator.clipboard.writeText(plainText).then(() => {
-          copyBtn.textContent = '✅ Copiado!';
-          setTimeout(() => (copyBtn.textContent = '📋'), 2000);
-        });
-      };
-
-      wrapper.appendChild(copyBtn);
 
     } catch (error) {
       console.error("Erro:", error);
       bolha.textContent = "Erro ao obter resposta da GIA.";
     }
   }
-</script>
+
+  function limparFormulario() {
+    document.getElementById('tipo_ferramenta').value = '';
+    document.getElementById('catalogo').value = '';
+    document.getElementById('material_usinado').value = '';
+    document.getElementById('material_ferramenta').value = '';
+    document.getElementById('refrigeracao').value = '';
+    document.getElementById('codigo_artigo').value = '';
+    document.getElementById('diametro').value = '';
+    document.getElementById('comprimento_total').value = '';
+    document.getElementById('comprimento_corte').value = '';
+    document.getElementById('comprimento_haste').value = '';
+    document.getElementById('tipo_furo').value = '';
+    document.getElementById('norma_din').value = '';
+    document.getElementById('results-section').style.display = 'none';
+  }
+
+  async function buscarFerramentas() {
+    const resultSection = document.getElementById('results-section');
+    resultSection.innerHTML = '<p>Buscando...</p>';
+    resultSection.style.display = 'block';
+
+    // Construir a query baseada nos campos preenchidos
+    let queryParts = [];
+    
+    const tipo = document.getElementById('tipo_ferramenta').value;
+    if (tipo) queryParts.push(tipo);
+    
+    const material = document.getElementById('material_usinado').value;
+    if (material) {
+      const materialMap = {
+        'aco': 'para aço',
+        'inox': 'para aço inoxidável',
+        'ferro_fundido': 'para ferro fundido',
+        'aluminio': 'para alumínio',
+        'cobre': 'para cobre',
+        'metais_nao_ferrosos': 'para metais não ferrosos',
+        'superligas': 'para superligas',
+        'materiais_endurecidos': 'para materiais endurecidos'
+      };
+      queryParts.push(materialMap[material]);
+    }
+    
+    const materialFerramenta = document.getElementById('material_ferramenta').value;
+    if (materialFerramenta) queryParts.push(`de ${materialFerramenta}`);
+    
+    const diametro = document.getElementById('diametro').value;
+    if (diametro) queryParts.push(`diâmetro ${diametro}mm`);
+    
+    const comprimentoCorte = document.getElementById('comprimento_corte').value;
+    if (comprimentoCorte) queryParts.push(`comprimento de corte ${comprimentoCorte}mm`);
+    
+    const refrigeracao = document.getElementById('refrigeracao').value;
+    if (refrigeracao === 'Sim') queryParts.push('com refrigeração interna');
+    if (refrigeracao === 'Não') queryParts.push('sem refrigeração');
+    
+    const codigo = document.getElementById('codigo_artigo').value;
+    if (codigo) {
+      queryParts = [`artigo ${codigo}`];
+    }
+    
+    const query = queryParts.join(' ') || 'ferramentas disponíveis';
+
+    try {
+      const response = await fetch("https://gia3.onrender.com/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: query })
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const data = await response.json();
+      resultSection.innerHTML = '<h3>Resultados da Busca:</h3>' + formatarResposta(data.answer);
+
+    } catch (error) {
+      console.error("Erro:", error);
+      resultSection.innerHTML = '<p style="color: red;">Erro ao buscar ferramentas. Tente novamente.</p>';
+    }
+  }
+
+  // Adicionar evento Enter no campo de código
+  document.getElementById('codigo_artigo').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      buscarFerramentas();
+    }
+  });
+  </script>
 
 </body>
 </html>
