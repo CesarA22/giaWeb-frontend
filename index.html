@@ -3,362 +3,148 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GIA - Assistente Virtual</title>
+  <title>GIA – Assistente Virtual</title>
+
+  <!-- ====== ESTILO ===================================================== -->
   <style>
-    * {
-      box-sizing: border-box;
-      scrollbar-width: thin;
-      scrollbar-color: #ccc transparent;
-    }
+    /* scroll slim ------------------------------------------------------- */
+    *{box-sizing:border-box;scrollbar-width:thin;scrollbar-color:#ccc transparent}
+    ::-webkit-scrollbar{width:6px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:#bbb;border-radius:3px}
 
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
+    /* layout ------------------------------------------------------------ */
+    body{margin:0;background:#f3f4f6;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;height:100vh}
+    header{background:#005580;color:#fff;padding:1rem;text-align:center;font-size:1.5rem;font-weight:bold;width:100%}
 
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
+    .mode-switcher{display:flex;justify-content:center;padding:1rem;gap:1rem}
+    .mode-btn{padding:8px 20px;border:2px solid #005580;background:#fff;color:#005580;border-radius:20px;cursor:pointer;transition:.3s;font-weight:500}
+    .mode-btn.active{background:#005580;color:#fff}
+    .mode-btn:hover{background:#004060;color:#fff}
 
-    ::-webkit-scrollbar-thumb {
-      background-color: #bbb;
-      border-radius: 3px;
-    }
+    /* chat -------------------------------------------------------------- */
+    #chat-mode{display:flex;flex-direction:column;height:calc(100vh - 120px)}
+    #chat-container{flex:1;overflow-y:auto;padding:1rem 1rem 90px;width:100%;max-width:600px;margin:0 auto;display:flex;flex-direction:column}
 
-    body {
-      margin: 0;
-      background-color: #f3f4f6;
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
+    .msg-wrapper{display:flex;margin-bottom:12px;align-items:flex-start}
+    .msg{padding:12px 16px;border-radius:16px;line-height:1.4;max-width:75%;word-wrap:break-word;background:#fff}
+    .user-msg{align-self:flex-end;background:#cce5ff;color:#00334d;border-top-right-radius:0;margin-left:auto}
+    .bot-msg{background:#fff;border:1px solid #ccc;color:#000;border-top-left-radius:0;margin-right:auto}
 
-    header {
-      background-color: #005580;
-      color: white;
-      padding: 1rem;
-      text-align: center;
-      font-size: 1.5rem;
-      font-weight: bold;
-      width: 100%;
-    }
+    .bot-avatar{width:36px;height:36px;border-radius:50%;background:#005580;color:#fff;font-weight:bold;font-size:16px;display:flex;align-items:center;justify-content:center;margin-right:10px;flex-shrink:0}
 
-    .mode-switcher {
-      display: flex;
-      justify-content: center;
-      padding: 1rem;
-      gap: 1rem;
-    }
+    #formulario{display:flex;padding:.75rem;background:#fff;width:100%;max-width:600px;position:fixed;bottom:0;left:50%;transform:translateX(-50%);border-top:1px solid #ddd}
+    #pergunta{flex:1;padding:10px 14px;font-size:1rem;border:1px solid #ccc;border-radius:999px;margin-right:10px}
+    button{padding:10px 16px;font-size:1rem;background:#005580;color:#fff;border:none;border-radius:999px;cursor:pointer}
 
-    .mode-btn {
-      padding: 8px 20px;
-      border: 2px solid #005580;
-      background: white;
-      color: #005580;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: all 0.3s;
-      font-weight: 500;
-    }
+    /* busca estruturada ------------------------------------------------- */
+    #search-mode{display:none;padding:1rem;max-width:900px;margin:0 auto;width:100%}
 
-    .mode-btn.active {
-      background: #005580;
-      color: white;
-    }
+    .search-form{background:#fff;padding:2rem;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+    .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem}
+    .form-group{display:flex;flex-direction:column}
+    .form-group label{font-size:.9rem;color:#333;margin-bottom:.5rem;font-weight:500}
+    .form-group input,.form-group select{padding:.75rem;border:1px solid #ddd;border-radius:8px;font-size:1rem;transition:border-color .3s}
+    .form-group input:focus,.form-group select:focus{outline:none;border-color:#005580}
 
-    .mode-btn:hover {
-      background: #004060;
-      color: white;
-    }
+    .dimension-group{background:#f8f9fa;padding:1rem;border-radius:8px;margin-top:1rem}
+    .dimension-group h3{margin:0 0 1rem;color:#005580;font-size:1.1rem}
 
-    /* Chat Mode */
-    #chat-mode {
-      display: flex;
-      flex-direction: column;
-      height: calc(100vh - 120px);
-    }
+    .search-buttons{display:flex;gap:1rem;margin-top:2rem;justify-content:center}
+    .search-btn,.clear-btn{padding:12px 32px;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:1rem;font-weight:500;transition:.3s}
+    .search-btn{background:#005580}
+    .search-btn:hover{background:#004060}
+    .search-btn:disabled{background:#6c757d;cursor:not-allowed}
+    .clear-btn{background:#6c757d}
+    .clear-btn:hover{background:#5a6268}
 
-    #chat-container {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1rem;
-      padding-bottom: 90px;
-      width: 100%;
-      max-width: 600px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-    }
+    .results-section{margin-top:2rem;background:#fff;padding:2rem;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.1);display:none}
+    .loading{display:flex;justify-content:center;align-items:center;padding:2rem}
+    .spinner{border:3px solid #f3f3f3;border-top:3px solid #005580;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite}
+    @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
 
-    .msg-wrapper {
-      display: flex;
-      margin-bottom: 12px;
-      align-items: flex-start;
-    }
+    .error-message{background:#fee;color:#c33;padding:1rem;border-radius:8px;margin:1rem 0}
+    .info-message{background:#e3f2fd;color:#1565c0;padding:1rem;border-radius:8px;margin:1rem 0}
 
-    .msg {
-      padding: 12px 16px;
-      border-radius: 16px;
-      line-height: 1.4;
-      max-width: 75%;
-      word-wrap: break-word;
-      background-color: #fff;
-    }
+    .query-preview{background:#f5f5f5;padding:1rem;border-radius:8px;margin:1rem 0;font-size:.9rem;color:#666}
 
-    .user-msg {
-      align-self: flex-end;
-      background-color: #cce5ff;
-      color: #00334d;
-      border-top-right-radius: 0;
-      margin-left: auto;
-    }
-
-    .bot-msg {
-      background-color: #ffffff;
-      border: 1px solid #ccc;
-      color: #000;
-      border-top-left-radius: 0;
-      margin-right: auto;
-    }
-
-    .bot-avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background-color: #005580;
-      color: white;
-      font-weight: bold;
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 10px;
-      flex-shrink: 0;
-    }
-
-    #formulario {
-      display: flex;
-      padding: 0.75rem;
-      background-color: white;
-      width: 100%;
-      max-width: 600px;
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      border-top: 1px solid #ddd;
-    }
-
-    #pergunta {
-      flex: 1;
-      padding: 10px 14px;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 999px;
-      margin-right: 10px;
-    }
-
-    button {
-      padding: 10px 16px;
-      font-size: 1rem;
-      background-color: #005580;
-      color: white;
-      border: none;
-      border-radius: 999px;
-      cursor: pointer;
-    }
-
-    /* Search Mode */
-    #search-mode {
-      display: none;
-      padding: 1rem;
-      max-width: 800px;
-      margin: 0 auto;
-      width: 100%;
-    }
-
-    .search-form {
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .form-group label {
-      font-size: 0.9rem;
-      color: #333;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-    }
-
-    .form-group input,
-    .form-group select {
-      padding: 0.75rem;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 1rem;
-      transition: border-color 0.3s;
-    }
-
-    .form-group input:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: #005580;
-    }
-
-    .dimension-group {
-      background: #f8f9fa;
-      padding: 1rem;
-      border-radius: 8px;
-      margin-top: 1rem;
-    }
-
-    .dimension-group h3 {
-      margin: 0 0 1rem 0;
-      color: #005580;
-      font-size: 1.1rem;
-    }
-
-    .search-buttons {
-      display: flex;
-      gap: 1rem;
-      margin-top: 2rem;
-      justify-content: center;
-    }
-
-    .search-btn {
-      padding: 12px 32px;
-      background: #005580;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 1rem;
-      font-weight: 500;
-      transition: background 0.3s;
-    }
-
-    .search-btn:hover {
-      background: #004060;
-    }
-
-    .clear-btn {
-      padding: 12px 32px;
-      background: #6c757d;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 1rem;
-      font-weight: 500;
-      transition: background 0.3s;
-    }
-
-    .clear-btn:hover {
-      background: #5a6268;
-    }
-
-    .results-section {
-      margin-top: 2rem;
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      display: none;
-    }
-
-    .result-item {
-      border: 1px solid #e0e0e0;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border-radius: 8px;
-    }
-
-    .result-item h4 {
-      margin: 0 0 0.5rem 0;
-      color: #005580;
-    }
-
-    @media (max-width: 600px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .search-buttons {
-        flex-direction: column;
-      }
-      
-      .search-btn, .clear-btn {
-        width: 100%;
-      }
+    @media(max-width:600px){
+      .form-grid{grid-template-columns:1fr}
+      .search-buttons{flex-direction:column}
+      .search-btn,.clear-btn{width:100%}
     }
   </style>
 </head>
 <body>
 
-  <header>GIA - Assistente Virtual de Ferramentaria</header>
+  <header>GIA – Assistente Virtual de Ferramentaria</header>
 
+  <!-- ====== SELETOR DE MODO (CHAT | BUSCA) ============================ -->
   <div class="mode-switcher">
     <button class="mode-btn active" onclick="switchMode('chat')">💬 Chat</button>
     <button class="mode-btn" onclick="switchMode('search')">🔍 Busca Avançada</button>
   </div>
 
-  <!-- Chat Mode -->
+  <!-- ============================= CHAT ============================== -->
   <div id="chat-mode">
     <div id="chat-container"></div>
-    <form id="formulario" onsubmit="enviarPergunta(); return false;">
-      <input type="text" id="pergunta" placeholder="Digite sua pergunta..." autocomplete="off" />
+
+    <form id="formulario" onsubmit="enviarPergunta();return false;">
+      <input type="text" id="pergunta" placeholder="Digite sua pergunta..." autocomplete="off">
       <button type="submit">➤</button>
     </form>
   </div>
 
-  <!-- Search Mode -->
+  <!-- ===================== BUSCA ESTRUTURADA ========================= -->
   <div id="search-mode">
     <div class="search-form">
-      <h2 style="margin-top: 0; color: #005580;">Busca Estruturada de Ferramentas</h2>
-      
+
+      <h2 style="margin-top:0;color:#005580">Busca Estruturada de Ferramentas</h2>
+
       <div class="form-grid">
+        <!-- tipo (obrigatório) -->
         <div class="form-group">
-          <label for="tipo_ferramenta">Tipo de Ferramenta</label>
-          <select id="tipo_ferramenta">
-            <option value="">Selecione...</option>
+          <label for="tipo_ferramenta">Tipo de Ferramenta <span style="color:#c33">*</span></label>
+          <select id="tipo_ferramenta" onchange="atualizarPreview()" required>
+            <option value="">Selecione…</option>
             <option value="Broca">Broca</option>
+            <option value="Broca Calibradora">Broca Calibradora</option>
+            <option value="Broca Canhão">Broca Canhão</option>
+            <option value="Broca Centro">Broca Centro</option>
+            <option value="Micro Broca">Micro Broca</option>
             <option value="Fresa">Fresa</option>
+            <option value="Fresa de Canal">Fresa de Canal</option>
+            <option value="Fresa de Rosca">Fresa de Rosca</option>
             <option value="Macho Máquina">Macho Máquina</option>
             <option value="Macho Laminador">Macho Laminador</option>
             <option value="Alargador">Alargador</option>
             <option value="Chanfrador">Chanfrador</option>
             <option value="Escareador / Rebarbador">Escareador</option>
+            <option value="Rebaixador">Rebaixador</option>
             <option value="Bedame Grooving">Bedame</option>
-            <option value="Inserto / Pastilha">Inserto/Pastilha</option>
+            <option value="Inserto / Pastilha">Inserto / Pastilha</option>
+            <option value="Cabeça Intercambiável para Macho Modular">Cabeça Intercambiável</option>
+            <option value="Ponta para broca intercambiável (HT800)">Ponta Intercambiável</option>
+            <option value="Guia para EB800">Guia para EB800</option>
           </select>
         </div>
 
+        <!-- catálogo -->
         <div class="form-group">
           <label for="catalogo">Linha do Catálogo</label>
-          <select id="catalogo">
-            <option value="">Todas</option>
+          <select id="catalogo" onchange="atualizarPreview()">
+            <option value="">Indiferente</option>
             <option value="Eco-Line">Eco-Line</option>
             <option value="Smart-Line">Smart-Line</option>
             <option value="Advanced-Line">Advanced-Line</option>
           </select>
         </div>
 
+        <!-- material usinado -->
         <div class="form-group">
           <label for="material_usinado">Material a Usinar</label>
-          <select id="material_usinado">
-            <option value="">Selecione...</option>
+          <select id="material_usinado" onchange="atualizarPreview()">
+            <option value="">Indiferente</option>
             <option value="aco">Aço</option>
             <option value="inox">Aço Inoxidável</option>
             <option value="ferro_fundido">Ferro Fundido</option>
@@ -370,77 +156,92 @@
           </select>
         </div>
 
+        <!-- material ferramenta -->
         <div class="form-group">
           <label for="material_ferramenta">Material da Ferramenta</label>
-          <select id="material_ferramenta">
-            <option value="">Selecione...</option>
+          <select id="material_ferramenta" onchange="atualizarPreview()">
+            <option value="">Indiferente</option>
             <option value="HSS">HSS (Aço Rápido)</option>
             <option value="METAL DURO">Metal Duro</option>
             <option value="METAL DURO INTERIÇO">Metal Duro Interiço</option>
             <option value="CERÂMICA">Cerâmica</option>
             <option value="DIAMANTE">Diamante</option>
             <option value="PCBN">PCBN</option>
+            <option value="PCD">PCD</option>
           </select>
         </div>
 
+        <!-- refrigeração -->
         <div class="form-group">
           <label for="refrigeracao">Refrigeração Interna</label>
-          <select id="refrigeracao">
+          <select id="refrigeracao" onchange="atualizarPreview()">
             <option value="">Indiferente</option>
             <option value="Sim">Com Refrigeração</option>
             <option value="Não">Sem Refrigeração</option>
           </select>
         </div>
 
+        <!-- código -->
         <div class="form-group">
           <label for="codigo_artigo">Código do Artigo</label>
-          <input type="text" id="codigo_artigo" placeholder="Ex: 211">
+          <input type="text" id="codigo_artigo" placeholder="Ex: 211" onchange="atualizarPreview()">
         </div>
-      </div>
+      </div> <!-- /form-grid -->
 
+      <!-- dimensões -->
       <div class="dimension-group">
         <h3>Dimensões (mm)</h3>
         <div class="form-grid">
           <div class="form-group">
             <label for="diametro">Diâmetro</label>
-            <input type="number" id="diametro" step="0.01" placeholder="Ex: 20">
+            <input type="number" id="diametro" step="0.01" placeholder="Ex: 20" onchange="atualizarPreview()">
           </div>
-          
           <div class="form-group">
             <label for="comprimento_total">Comprimento Total</label>
-            <input type="number" id="comprimento_total" step="0.01" placeholder="Ex: 100">
+            <input type="number" id="comprimento_total" step="0.01" placeholder="Ex: 100" onchange="atualizarPreview()">
           </div>
-          
           <div class="form-group">
             <label for="comprimento_corte">Comprimento de Corte</label>
-            <input type="number" id="comprimento_corte" step="0.01" placeholder="Ex: 30">
+            <input type="number" id="comprimento_corte" step="0.01" placeholder="Ex: 30" onchange="atualizarPreview()">
           </div>
-          
           <div class="form-group">
-            <label for="comprimento_haste">Comprimento da Haste</label>
-            <input type="number" id="comprimento_haste" step="0.01" placeholder="Ex: 10">
+            <label for="diametro_haste">Diâmetro da Haste</label>
+            <input type="number" id="diametro_haste" step="0.01" placeholder="Ex: 10" onchange="atualizarPreview()">
           </div>
         </div>
-      </div>
+      </div> <!-- /dimension group -->
 
-      <div class="form-grid" style="margin-top: 1rem;">
+      <div class="form-grid" style="margin-top:1rem">
         <div class="form-group">
           <label for="tipo_furo">Tipo de Furo</label>
-          <select id="tipo_furo">
-            <option value="">Selecione...</option>
+          <select id="tipo_furo" onchange="atualizarPreview()">
+            <option value="">Indiferente</option>
             <option value="Passante">Passante</option>
             <option value="Cego">Cego</option>
           </select>
         </div>
-
         <div class="form-group">
           <label for="norma_din">Norma DIN</label>
-          <input type="text" id="norma_din" placeholder="Ex: DIN 339">
+          <input type="text" id="norma_din" placeholder="Ex: DIN 339" onchange="atualizarPreview()">
+        </div>
+        <div class="form-group">
+          <label for="tipo_rosca">Tipo de Rosca</label>
+          <select id="tipo_rosca" onchange="atualizarPreview()">
+            <option value="">Indiferente</option>
+            <option value="Cortada">Rosca Cortada</option>
+            <option value="Laminada">Rosca Laminada</option>
+          </select>
         </div>
       </div>
 
+      <!-- preview da busca -->
+      <div id="query-preview" class="query-preview" style="display:none">
+        <strong>Busca construída:</strong> <span id="preview-text"></span>
+      </div>
+
+      <!-- botões -->
       <div class="search-buttons">
-        <button type="button" class="search-btn" onclick="buscarFerramentas()">🔍 Buscar</button>
+        <button type="button" class="search-btn" id="search-button" onclick="buscarFerramentas()">🔍 Buscar</button>
         <button type="button" class="clear-btn" onclick="limparFormulario()">🗑️ Limpar</button>
       </div>
     </div>
@@ -448,194 +249,205 @@
     <div id="results-section" class="results-section"></div>
   </div>
 
+  <!-- ====================== JAVASCRIPT =============================== -->
   <script>
   const chatContainer = document.getElementById('chat-container');
   let currentMode = 'chat';
+  let searchInProgress = false;
 
-  function switchMode(mode) {
+  /* ---------- alterna modo ---------------------------------------- */
+  function switchMode(mode){
     currentMode = mode;
-    const chatMode = document.getElementById('chat-mode');
+    const chatMode   = document.getElementById('chat-mode');
     const searchMode = document.getElementById('search-mode');
-    const modeBtns = document.querySelectorAll('.mode-btn');
-    
-    modeBtns.forEach(btn => btn.classList.remove('active'));
-    
-    if (mode === 'chat') {
-      chatMode.style.display = 'flex';
-      searchMode.style.display = 'none';
-      modeBtns[0].classList.add('active');
-    } else {
-      chatMode.style.display = 'none';
-      searchMode.style.display = 'block';
-      modeBtns[1].classList.add('active');
+    const btns       = document.querySelectorAll('.mode-btn');
+    btns.forEach(b=>b.classList.remove('active'));
+
+    if(mode==='chat'){
+      chatMode.style.display='flex';
+      searchMode.style.display='none';
+      btns[0].classList.add('active');
+    }else{
+      chatMode.style.display='none';
+      searchMode.style.display='block';
+      btns[1].classList.add('active');
     }
   }
 
-  function formatarResposta(texto) {
+  /* ---------- util: formata resposta vinda da API ----------------- */
+  function formatarResposta(texto){
     const linhas = texto.split('\n');
-    return linhas.map(linha => {
-      if (linha.startsWith('**') && linha.endsWith('**')) {
-        return '<strong>' + linha.replace(/\*\*/g, '') + '</strong>';
-      } else if (linha.startsWith('Link: http')) {
-        const url = linha.replace('Link: ', '').trim();
-        return `<a href="${url}" target="_blank">🔗 Acessar produto no Webshop</a>`;
-      } else if (linha.startsWith('•')) {
-        return `<div style="margin-left: 1rem">• ${linha.substring(1).trim()}</div>`;
-      } else {
+    return linhas.map(linha=>{
+      if(linha.startsWith('**') && linha.endsWith('**')){
+        return '<strong>'+linha.replace(/\*\*/g,'')+'</strong>';
+      }else if(linha.startsWith('Link: http')){
+        const url = linha.replace('Link: ','').trim();
+        return `<a href="${url}" target="_blank" style="color:#005580;text-decoration:none">🔗 Acessar produto no Webshop</a>`;
+      }else if(linha.startsWith('•')){
+        return `<div style="margin-left:1rem">• ${linha.substring(1).trim()}</div>`;
+      }else{
         return linha;
       }
     }).join('<br>');
   }
 
-  function adicionarMensagem(texto, classe, isBot = false) {
+  /* ---------- adiciona mensagem ao chat --------------------------- */
+  function adicionarMensagem(texto, classe, isBot=false){
     const wrapper = document.createElement('div');
-    wrapper.className = 'msg-wrapper';
-
-    if (isBot) {
-      const avatar = document.createElement('div');
-      avatar.className = 'bot-avatar';
-      avatar.textContent = 'G';
+    wrapper.className='msg-wrapper';
+    if(isBot){
+      const avatar=document.createElement('div');
+      avatar.className='bot-avatar';
+      avatar.textContent='G';
       wrapper.appendChild(avatar);
     }
-
-    const msg = document.createElement('div');
-    msg.className = `msg ${classe}`;
-    msg.innerHTML = isBot ? formatarResposta(texto) : texto;
+    const msg=document.createElement('div');
+    msg.className=`msg ${classe}`;
+    msg.innerHTML=isBot?formatarResposta(texto):texto;
     wrapper.appendChild(msg);
-    
     chatContainer.appendChild(wrapper);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
+    chatContainer.scrollTop=chatContainer.scrollHeight;
   }
 
-  async function enviarPergunta(perguntaManual = null) {
-    const input = document.getElementById('pergunta');
-    const pergunta = perguntaManual || input.value.trim();
-    if (!pergunta) return;
+  /* ---------- envia pergunta -------------------------------------- */
+  async function enviarPergunta(){
+    const input=document.getElementById('pergunta');
+    const pergunta=input.value.trim();
+    if(!pergunta) return;
 
-    adicionarMensagem(pergunta, 'user-msg');
-    input.value = '';
+    adicionarMensagem(pergunta,'user-msg');
+    input.value='';
 
-    const wrapper = document.createElement('div');
-    wrapper.className = 'msg-wrapper';
-
-    const avatar = document.createElement('div');
-    avatar.className = 'bot-avatar';
-    avatar.textContent = 'G';
-
-    const bolha = document.createElement('div');
-    bolha.className = 'msg bot-msg';
-    bolha.textContent = '...';
-
+    const wrapper=document.createElement('div');
+    wrapper.className='msg-wrapper';
+    const avatar=document.createElement('div');
+    avatar.className='bot-avatar';
+    avatar.textContent='G';
+    const bolha=document.createElement('div');
+    bolha.className='msg bot-msg';
+    bolha.innerHTML='<div class="spinner" style="width:20px;height:20px;border-width:2px"></div>';
     wrapper.appendChild(avatar);
     wrapper.appendChild(bolha);
     chatContainer.appendChild(wrapper);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
+    chatContainer.scrollTop=chatContainer.scrollHeight;
 
-    try {
-      const response = await fetch("https://gia3.onrender.com/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: pergunta })
+    try{
+      const response = await fetch("https://gia3.onrender.com/ask",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({question:pergunta})
       });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
+      if(!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       bolha.innerHTML = formatarResposta(data.answer || "Não entendi sua pergunta.");
-
-    } catch (error) {
-      console.error("Erro:", error);
-      bolha.textContent = "Erro ao obter resposta da GIA.";
+    }catch(e){
+      bolha.innerHTML='<span style="color:#c33">Erro ao obter resposta. Tente novamente.</span>';
     }
   }
 
-  function limparFormulario() {
-    document.getElementById('tipo_ferramenta').value = '';
-    document.getElementById('catalogo').value = '';
-    document.getElementById('material_usinado').value = '';
-    document.getElementById('material_ferramenta').value = '';
-    document.getElementById('refrigeracao').value = '';
-    document.getElementById('codigo_artigo').value = '';
-    document.getElementById('diametro').value = '';
-    document.getElementById('comprimento_total').value = '';
-    document.getElementById('comprimento_corte').value = '';
-    document.getElementById('comprimento_haste').value = '';
-    document.getElementById('tipo_furo').value = '';
-    document.getElementById('norma_din').value = '';
-    document.getElementById('results-section').style.display = 'none';
+  /* ---------- constrói resumo da busca (apenas para o preview) ---- */
+  function construirPreview(){
+    const partes=[];
+    const tool = document.getElementById('tipo_ferramenta').value;
+    if(tool) partes.push(tool.toLowerCase());
+    const matFerr = document.getElementById('material_ferramenta').value;
+    if(matFerr) partes.push(matFerr.toLowerCase());
+    const matUsin = document.getElementById('material_usinado').selectedOptions[0]?.textContent;
+    if(matUsin && matUsin!=='Indiferente') partes.push(matUsin.toLowerCase());
+    const cat = document.getElementById('catalogo').value;
+    if(cat) partes.push(cat.toLowerCase());
+    return partes.join(' ');
   }
 
-  async function buscarFerramentas() {
-    const resultSection = document.getElementById('results-section');
-    resultSection.innerHTML = '<p>Buscando...</p>';
-    resultSection.style.display = 'block';
-
-    // Construir a query baseada nos campos preenchidos
-    let queryParts = [];
-    
-    const tipo = document.getElementById('tipo_ferramenta').value;
-    if (tipo) queryParts.push(tipo);
-    
-    const material = document.getElementById('material_usinado').value;
-    if (material) {
-      const materialMap = {
-        'aco': 'para aço',
-        'inox': 'para aço inoxidável',
-        'ferro_fundido': 'para ferro fundido',
-        'aluminio': 'para alumínio',
-        'cobre': 'para cobre',
-        'metais_nao_ferrosos': 'para metais não ferrosos',
-        'superligas': 'para superligas',
-        'materiais_endurecidos': 'para materiais endurecidos'
-      };
-      queryParts.push(materialMap[material]);
+  function atualizarPreview(){
+    const texto=construirPreview();
+    const div=document.getElementById('query-preview');
+    const span=document.getElementById('preview-text');
+    if(texto){
+      div.style.display='block';
+      span.textContent=texto;
+    }else{
+      div.style.display='none';
     }
-    
-    const materialFerramenta = document.getElementById('material_ferramenta').value;
-    if (materialFerramenta) queryParts.push(`de ${materialFerramenta}`);
-    
-    const diametro = document.getElementById('diametro').value;
-    if (diametro) queryParts.push(`diâmetro ${diametro}mm`);
-    
-    const comprimentoCorte = document.getElementById('comprimento_corte').value;
-    if (comprimentoCorte) queryParts.push(`comprimento de corte ${comprimentoCorte}mm`);
-    
-    const refrigeracao = document.getElementById('refrigeracao').value;
-    if (refrigeracao === 'Sim') queryParts.push('com refrigeração interna');
-    if (refrigeracao === 'Não') queryParts.push('sem refrigeração');
-    
-    const codigo = document.getElementById('codigo_artigo').value;
-    if (codigo) {
-      queryParts = [`artigo ${codigo}`];
-    }
-    
-    const query = queryParts.join(' ') || 'ferramentas disponíveis';
+  }
 
-    try {
-      const response = await fetch("https://gia3.onrender.com/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: query })
+  /* ---------- limpa formulário ------------------------------------ */
+  function limparFormulario(){
+    document.querySelectorAll('#search-mode select,#search-mode input').forEach(el=>el.value='');
+    document.getElementById('results-section').style.display='none';
+    atualizarPreview();
+  }
+
+  /* ---------- monta JSON e consulta /advanced-search -------------- */
+  async function buscarFerramentas(){
+    if(searchInProgress) return;
+
+    // coleta campos
+    const data = {
+      tipo_ferramenta : document.getElementById('tipo_ferramenta').value,
+      catalogo        : document.getElementById('catalogo').value,
+      material_usinado: document.getElementById('material_usinado').value,
+      material_ferramenta : document.getElementById('material_ferramenta').value,
+      refrigeracao    : document.getElementById('refrigeracao').value,
+      codigo_artigo   : document.getElementById('codigo_artigo').value.trim(),
+      diametro        : document.getElementById('diametro').value,
+      comprimento_total: document.getElementById('comprimento_total').value,
+      comprimento_corte: document.getElementById('comprimento_corte').value,
+      diametro_haste  : document.getElementById('diametro_haste').value,
+      tipo_furo       : document.getElementById('tipo_furo').value,
+      tipo_rosca      : document.getElementById('tipo_rosca').value,
+      norma_din       : document.getElementById('norma_din').value.trim()
+    };
+
+    // campo obrigatório
+    if(!data.tipo_ferramenta){
+      alert('Selecione o tipo de ferramenta para buscar.');
+      return;
+    }
+
+    // remove vazios
+    Object.keys(data).forEach(k=>{ if(data[k]===''||data[k]===null) delete data[k]; });
+
+    const resultSection=document.getElementById('results-section');
+    const btn=document.getElementById('search-button');
+
+    searchInProgress=true;
+    btn.disabled=true;
+    btn.innerHTML='⏳ Buscando…';
+    resultSection.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+    resultSection.style.display='block';
+
+    try{
+      const response = await fetch("https://gia3.onrender.com/advanced-search",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(data)
       });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      const data = await response.json();
-      resultSection.innerHTML = '<h3>Resultados da Busca:</h3>' + formatarResposta(data.answer);
-
-    } catch (error) {
-      console.error("Erro:", error);
-      resultSection.innerHTML = '<p style="color: red;">Erro ao buscar ferramentas. Tente novamente.</p>';
+      if(!response.ok) throw new Error(`HTTP ${response.status}`);
+      const json = await response.json();
+      resultSection.innerHTML = '<h3 style="color:#005580;margin-bottom:1rem">Resultados da Busca:</h3>'+
+                                formatarResposta(json.answer);
+    }catch(e){
+      resultSection.innerHTML='<div class="error-message">Erro ao buscar ferramentas. Verifique conexão e tente novamente.</div>';
+    }finally{
+      searchInProgress=false;
+      btn.disabled=false;
+      btn.innerHTML='🔍 Buscar';
     }
   }
 
-  // Adicionar evento Enter no campo de código
-  document.getElementById('codigo_artigo').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      buscarFerramentas();
-    }
+  /* ---------- atalhos de ENTER ------------------------------------ */
+  document.getElementById('codigo_artigo').addEventListener('keypress',e=>{
+    if(e.key==='Enter'){e.preventDefault();buscarFerramentas();}
+  });
+  document.getElementById('pergunta').addEventListener('keypress',e=>{
+    if(e.key==='Enter'){e.preventDefault();enviarPergunta();}
+  });
+
+  /* ---------- mensagem inicial ------------------------------------ */
+  window.addEventListener('load',()=>{
+    adicionarMensagem("Olá! Sou o GIA, assistente virtual de ferramentaria. Como posso ajudar você hoje?",'bot-msg',true);
   });
   </script>
-
 </body>
 </html>
