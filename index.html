@@ -331,7 +331,7 @@
     chatContainer.scrollTop=chatContainer.scrollHeight;
 
     try{
-      const response = await fetch("https://gia3.onrender.com/ask",{
+      const response = await fetch("https://gia-web-guhring.onrender.com/ask",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({question:pergunta})
@@ -417,7 +417,7 @@
     resultSection.style.display='block';
 
     try{
-      const response = await fetch("https://gia3.onrender.com/advanced-search",{
+      const response = await fetch("https://gia-web-guhring.onrender.com/advanced-search",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify(data)
